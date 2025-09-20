@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "dgSpecHash": "2IlcfwAM4+QVk9CXyqh20HfMFHzQxNCdJauTVs3z7WkmNeU3eqA0n6s4GtxY9wqFw5Z/rinSKF6ISkPArLXr1A==",
+  "success": true,
+  "projectFilePath": "D:\\Automation Testing\\SD5049_BuiPhuongAnh_04124_c#_basic_section1\\SeleniumNUnitPOM\\SeleniumNUnitPOM.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\coverlet.collector\\3.2.0\\coverlet.collector.3.2.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\microsoft.codecoverage\\17.5.0\\microsoft.codecoverage.17.5.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\microsoft.net.test.sdk\\17.5.0\\microsoft.net.test.sdk.17.5.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\microsoft.testplatform.objectmodel\\17.5.0\\microsoft.testplatform.objectmodel.17.5.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\microsoft.testplatform.testhost\\17.5.0\\microsoft.testplatform.testhost.17.5.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\netstandard.library\\2.0.0\\netstandard.library.2.0.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\nuget.frameworks\\5.11.0\\nuget.frameworks.5.11.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\nunit\\3.13.3\\nunit.3.13.3.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\nunit.analyzers\\3.6.1\\nunit.analyzers.3.6.1.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\nunit3testadapter\\4.4.2\\nunit3testadapter.4.4.2.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\selenium.support\\4.35.0\\selenium.support.4.35.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\selenium.webdriver\\4.35.0\\selenium.webdriver.4.35.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\selenium.webdriver.chromedriver\\140.0.7339.18500\\selenium.webdriver.chromedriver.140.0.7339.18500.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\system.reflection.metadata\\1.6.0\\system.reflection.metadata.1.6.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
+    "C:\\Users\\anh.buiphuong.HARVEYNASH\\.nuget\\packages\\system.text.json\\8.0.5\\system.text.json.8.0.5.nupkg.sha512"
+  ],
+  "logs": []
+}
