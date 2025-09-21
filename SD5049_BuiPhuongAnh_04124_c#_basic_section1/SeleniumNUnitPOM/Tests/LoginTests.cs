@@ -13,7 +13,8 @@ namespace SeleniumNUnitPOM.Tests
         private LoginPage _loginPage;
         private const string BaseUrl = "http://automationexercise.com";
 
-        // Replace with your own valid test account
+    // Test account credentials for login scenarios
+    // Update these values with your own valid test account if needed
         private const string ValidEmail = "anh.bp@test.com";
         private const string ValidPassword = "anh.bp@test.com";
         private const string InvalidPassword = "wrongpassword";

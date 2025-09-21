@@ -8,10 +8,11 @@ namespace SeleniumAutomationExercise
 {
     class Program
     {
-        private static IWebDriver? driver;   
-        private static WebDriverWait? wait;  
+    // WebDriver and Wait objects
+    private static IWebDriver? driver;   
+    private static WebDriverWait? wait;  
 
-        // Centralize locators
+    // Centralize locators for maintainability
         private static readonly By signupLoginBtn = By.XPath("//a[contains(text(),'Signup / Login')]");
         private static readonly By loginHeader = By.XPath("//h2[contains(text(),'Login to your account')]");
         private static readonly By loginEmail = By.XPath("//input[@data-qa='login-email']");
@@ -20,7 +21,7 @@ namespace SeleniumAutomationExercise
         private static readonly By errorMessage = By.XPath("//p[contains(text(),'Your email or password is incorrect!')]");
         private static readonly By loggedInMsg = By.XPath("//a[contains(text(),'Logged in as')]");
 
-        // Centralized credentials
+    // Centralized credentials for easy modification
         private static readonly string validEmail = "anh.bp@test.com";
         private static readonly string validPassword = "anh.bp@test.com";
         private static readonly string invalidEmail = "wrongemail@test.com";
@@ -28,14 +29,15 @@ namespace SeleniumAutomationExercise
 
         static void Main(string[] args)
         {
+            // Initialize Chrome WebDriver and explicit wait
             driver = new ChromeDriver();
             wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
 
             try
             {
-                driver.Manage().Window.Maximize();
-                RunInvalidLoginTest();
-                RunValidLoginTest();
+                driver.Manage().Window.Maximize(); // Maximize browser window
+                RunInvalidLoginTest(); // Test with invalid credentials
+                RunValidLoginTest();   // Test with valid credentials
             }
             catch (Exception ex)
             {
@@ -43,23 +45,25 @@ namespace SeleniumAutomationExercise
             }
             finally
             {
-                driver?.Quit();
+                driver?.Quit(); // Ensure browser closes
                 Console.WriteLine("\nBrowser closed. Test finished.");
             }
         }
 
+        // Test: Attempt login with invalid credentials and verify error message
         private static void RunInvalidLoginTest()
         {
             Console.WriteLine("\n*** Exercise 1: Invalid Login ***");
 
-            NavigateToHomePage();
-            ClickAndVerifyLoginHeader();
+            NavigateToHomePage(); // Go to home page
+            ClickAndVerifyLoginHeader(); // Click login and verify header
 
-            // Use invalid credentials
+            // Enter invalid credentials
             driver!.FindElement(loginEmail).SendKeys(invalidEmail);
             driver.FindElement(loginPassword).SendKeys(invalidPassword);
             driver.FindElement(loginButton).Click();
 
+            // Check for error message
             if (IsElementVisible(errorMessage))
             {
                 var errorMsg = driver.FindElement(errorMessage);
@@ -71,18 +75,20 @@ namespace SeleniumAutomationExercise
             }
         }
 
+        // Test: Attempt login with valid credentials and verify success message
         private static void RunValidLoginTest()
         {
             Console.WriteLine("\n*** Exercise 2: Valid Login ***");
 
-            NavigateToHomePage();
-            ClickAndVerifyLoginHeader();
+            NavigateToHomePage(); // Go to home page
+            ClickAndVerifyLoginHeader(); // Click login and verify header
 
-            // Use valid credentials
+            // Enter valid credentials
             driver!.FindElement(loginEmail).SendKeys(validEmail);
             driver.FindElement(loginPassword).SendKeys(validPassword);
             driver.FindElement(loginButton).Click();
 
+            // Check for 'Logged in as' message
             if (IsElementVisible(loggedInMsg))
             {
                 var loggedInElement = driver.FindElement(loggedInMsg);
@@ -94,7 +100,7 @@ namespace SeleniumAutomationExercise
             }
         }
 
-        // --- Helpers ---
+        // Navigate to the home page and verify title
         private static void NavigateToHomePage()
         {
             driver!.Navigate().GoToUrl("http://automationexercise.com");
@@ -104,6 +110,7 @@ namespace SeleniumAutomationExercise
                 Console.WriteLine("[FAIL] Home page NOT visible");
         }
 
+        // Click the Signup/Login button and verify login header
         private static void ClickAndVerifyLoginHeader()
         {
             driver!.FindElement(signupLoginBtn).Click();
@@ -113,6 +120,7 @@ namespace SeleniumAutomationExercise
                 Console.WriteLine("[FAIL] Login header not found");
         }
 
+        // Wait for an element to be visible and return its status
         private static bool IsElementVisible(By locator)
         {
             try
