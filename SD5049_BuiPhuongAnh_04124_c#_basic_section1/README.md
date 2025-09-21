@@ -18,8 +18,6 @@ This project demonstrates browser automation using Selenium WebDriver, NUnit, an
 3. Restore NuGet packages for each project:
    ```
    dotnet restore SeleniumCommand/SeleniumCommand.csproj
-   dotnet restore SeleniumCommand_Ex1/SeleniumCommand_Ex1.csproj
-   dotnet restore SeleniumCommand_Ex2/SeleniumCommand_Ex2.csproj
    dotnet restore SeleniumNUnitPOM/SeleniumNUnitPOM.csproj
    ```
 
