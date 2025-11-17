@@ -42,8 +42,11 @@ Then run:
 ```
 dotnet build
 dotnet test
+dotnet test --logger:"console;verbosity=detailed"
 ```
-
+dotnet test --logger:"console;verbosity=detailed" DemoQATests/DemoQATests.csproj
+Username: buiphuonganh
+Password: @Nh17102025
 
 ## Selenium Packages Used
 - Selenium.WebDriver

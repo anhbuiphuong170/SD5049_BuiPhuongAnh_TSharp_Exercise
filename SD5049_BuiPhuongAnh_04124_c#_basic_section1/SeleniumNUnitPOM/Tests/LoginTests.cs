@@ -11,10 +11,9 @@ namespace SeleniumNUnitPOM.Tests
     {
         private IWebDriver _driver;
         private LoginPage _loginPage;
-        private const string BaseUrl = "http://automationexercise.com";
+        private const string BaseUrl = "https://automationexercise.com";
 
-    // Test account credentials for login scenarios
-    // Update these values with your own valid test account if needed
+        // Test credentials
         private const string ValidEmail = "anh.bp@test.com";
         private const string ValidPassword = "anh.bp@test.com";
         private const string InvalidPassword = "wrongpassword";
@@ -63,6 +62,7 @@ namespace SeleniumNUnitPOM.Tests
             _loginPage.ClickLoginButton();
 
             Assert.IsTrue(_loginPage.IsLoggedInAsVisible(), "'Logged in as username' is NOT visible.");
+
             string username = _loginPage.GetLoggedInUsername();
             Console.WriteLine($"[Ex2] PASSED: Logged in as username '{username}' displayed.");
         }

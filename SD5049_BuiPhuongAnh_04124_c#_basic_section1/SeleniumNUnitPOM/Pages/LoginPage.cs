@@ -5,108 +5,99 @@ using System;
 
 namespace SeleniumNUnitPOM.Pages
 {
-    /// <summary>
-    /// Page Object Model for the Login page of Automation Exercise.
-    /// Encapsulates all interactions and verifications for login functionality.
-    /// </summary>
     public class LoginPage
     {
-        // WebDriver instance for browser interaction
         private readonly IWebDriver _driver;
-        // WebDriverWait for explicit waits
         private readonly WebDriverWait _wait;
 
-        /// <summary>
-        /// Constructor initializes driver and wait.
-        /// </summary>
         public LoginPage(IWebDriver driver)
         {
             _driver = driver;
             _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
         }
 
-        // Page elements using explicit waits for reliability
-        private IWebElement SignupLoginLink => 
-            _wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//a[contains(text(),'Signup / Login')]")));
+        // Prefer id/name first, fallback to xpath
+        private By SignupLoginLink => By.XPath("//a[contains(text(),'Signup / Login')]");
+        private By LoginHeader => By.XPath("//h2[contains(text(),'Login to your account')]");
+        private By EmailField => By.Name("email");
+        private By PasswordField => By.Name("password");
+        private By LoginButton => By.XPath("//button[@data-qa='login-button']");
+        private By ErrorMessage => By.XPath("//p[contains(text(),'Your email or password is incorrect!')]");
+        private By LoggedInAs => By.XPath("//a[contains(text(),'Logged in as')]");
 
-        private IWebElement LoginHeader => 
-            _wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//h2[contains(text(),'Login to your account')]")));
+        public void ClickSignupLogin()
+        {
+            var element = _wait.Until(ExpectedConditions.ElementToBeClickable(SignupLoginLink));
+            element.Click();
+        }
 
-        private IWebElement EmailField => 
-            _wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//input[@data-qa='login-email']")));
-
-        private IWebElement PasswordField => 
-            _driver.FindElement(By.XPath("//input[@data-qa='login-password']"));
-
-        private IWebElement LoginButton => 
-            _driver.FindElement(By.XPath("//button[@data-qa='login-button']"));
-
-        private IWebElement ErrorMessage => 
-            _driver.FindElement(By.XPath("//p[contains(text(),'Your email or password is incorrect!')]"));
-
-        private IWebElement LoggedInAs => 
-            _driver.FindElement(By.XPath("//a[contains(text(),'Logged in as')]"));
-
-        /// <summary>
-        /// Clicks the Signup/Login link on the home page.
-        /// </summary>
-        public void ClickSignupLogin() => SignupLoginLink.Click();
-
-        /// <summary>
-        /// Checks if the login header is visible.
-        /// </summary>
-        public bool IsLoginHeaderVisible() => LoginHeader.Displayed;
-
-        /// <summary>
-        /// Enters the email address in the login form.
-        /// </summary>
-        public void EnterEmail(string email) => EmailField.SendKeys(email);
-
-        /// <summary>
-        /// Enters the password in the login form.
-        /// </summary>
-        public void EnterPassword(string password) => PasswordField.SendKeys(password);
-
-        /// <summary>
-        /// Clicks the login button.
-        /// </summary>
-        public void ClickLoginButton() => LoginButton.Click();
-
-        /// <summary>
-        /// Checks if the error message for invalid login is visible.
-        /// </summary>
-        public bool IsErrorMessageVisible() => ErrorMessage.Displayed;
-
-        /// <summary>
-        /// Checks if the 'Logged in as' message is visible after successful login.
-        /// </summary>
-        public bool IsLoggedInAsVisible()
+        public bool IsLoginHeaderVisible()
         {
             try
             {
-                return LoggedInAs.Displayed;
+                var element = _wait.Until(ExpectedConditions.ElementIsVisible(LoginHeader));
+                return element.Displayed;
             }
-            catch (NoSuchElementException)
+            catch (WebDriverTimeoutException)
             {
                 return false;
             }
         }
 
-        /// <summary>
-        /// Returns the specific username from the 'Logged in as' element.
-        /// </summary>
+        public void EnterEmail(string email)
+        {
+            var element = _wait.Until(ExpectedConditions.ElementIsVisible(EmailField));
+            element.Clear();
+            element.SendKeys(email);
+        }
+
+        public void EnterPassword(string password)
+        {
+            var element = _wait.Until(ExpectedConditions.ElementIsVisible(PasswordField));
+            element.Clear();
+            element.SendKeys(password);
+        }
+
+        public void ClickLoginButton()
+        {
+            var button = _wait.Until(ExpectedConditions.ElementToBeClickable(LoginButton));
+            button.Click();
+        }
+
+        public bool IsErrorMessageVisible()
+        {
+            try
+            {
+                return _wait.Until(ExpectedConditions.ElementIsVisible(ErrorMessage)).Displayed;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool IsLoggedInAsVisible()
+        {
+            try
+            {
+                return _wait.Until(ExpectedConditions.ElementIsVisible(LoggedInAs)).Displayed;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public string GetLoggedInUsername()
         {
             try
             {
-                var text = LoggedInAs.Text;
-                // Assumes format: 'Logged in as <username>'
+                var element = _wait.Until(ExpectedConditions.ElementIsVisible(LoggedInAs));
+                var text = element.Text;
                 var parts = text.Split(' ');
-                if (parts.Length >= 4)
-                    return parts[3];
-                return string.Empty;
+                return parts.Length >= 4 ? parts[3] : string.Empty;
             }
-            catch (NoSuchElementException)
+            catch
             {
                 return string.Empty;
             }

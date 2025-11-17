@@ -2,130 +2,116 @@ using System;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
-using SeleniumExtras.WaitHelpers; // for ExpectedConditions
+using SeleniumExtras.WaitHelpers;
 
 namespace SeleniumAutomationExercise
 {
-    class Program
+    internal class Program
     {
-    // WebDriver and Wait objects
-    private static IWebDriver? driver;   
-    private static WebDriverWait? wait;  
+        private IWebDriver? _driver;
+        private WebDriverWait? _wait;
 
-    // Centralize locators for maintainability
-        private static readonly By signupLoginBtn = By.XPath("//a[contains(text(),'Signup / Login')]");
-        private static readonly By loginHeader = By.XPath("//h2[contains(text(),'Login to your account')]");
-        private static readonly By loginEmail = By.XPath("//input[@data-qa='login-email']");
-        private static readonly By loginPassword = By.XPath("//input[@data-qa='login-password']");
-        private static readonly By loginButton = By.XPath("//button[@data-qa='login-button']");
-        private static readonly By errorMessage = By.XPath("//p[contains(text(),'Your email or password is incorrect!')]");
-        private static readonly By loggedInMsg = By.XPath("//a[contains(text(),'Logged in as')]");
+        private readonly By _signupLoginBtn = By.XPath("//a[contains(text(),'Signup / Login')]");
+        private readonly By _loginHeader = By.XPath("//h2[contains(text(),'Login to your account')]");
+        private readonly By _loginEmail = By.Name("email");
+        private readonly By _loginPassword = By.Name("password");
+        private readonly By _loginButton = By.XPath("//button[@data-qa='login-button']");
+        private readonly By _errorMessage = By.XPath("//p[contains(text(),'Your email or password is incorrect!')]");
+        private readonly By _loggedInMsg = By.XPath("//a[contains(text(),'Logged in as')]");
 
-    // Centralized credentials for easy modification
-        private static readonly string validEmail = "anh.bp@test.com";
-        private static readonly string validPassword = "anh.bp@test.com";
-        private static readonly string invalidEmail = "wrongemail@test.com";
-        private static readonly string invalidPassword = "wrongpassword";
+        private const string ValidEmail = "anh.bp@test.com";
+        private const string ValidPassword = "anh.bp@test.com";
+        private const string InvalidEmail = "wrongemail@test.com";
+        private const string InvalidPassword = "wrongpassword";
 
         static void Main(string[] args)
         {
-            // Initialize Chrome WebDriver and explicit wait
-            driver = new ChromeDriver();
-            wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+            var program = new Program();
+            program.RunTests();
+        }
+
+        private void RunTests()
+        {
+            _driver = new ChromeDriver();
+            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
 
             try
             {
-                driver.Manage().Window.Maximize(); // Maximize browser window
-                RunInvalidLoginTest(); // Test with invalid credentials
-                RunValidLoginTest();   // Test with valid credentials
+                _driver.Manage().Window.Maximize();
+
+                RunInvalidLoginTest();
+                RunValidLoginTest();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[FAIL] Test crashed with exception: {ex.Message}");
+                Console.WriteLine($"[ERROR] Test crashed: {ex.Message}");
             }
             finally
             {
-                driver?.Quit(); // Ensure browser closes
+                _driver?.Quit();
                 Console.WriteLine("\nBrowser closed. Test finished.");
             }
         }
 
-        // Test: Attempt login with invalid credentials and verify error message
-        private static void RunInvalidLoginTest()
+        //  Test 1: Invalid login
+        private void RunInvalidLoginTest()
         {
-            Console.WriteLine("\n*** Exercise 1: Invalid Login ***");
+            Console.WriteLine("\n=== [Ex1] Invalid Login Test ===");
+            NavigateToHomePage();
+            ClickLoginPage();
 
-            NavigateToHomePage(); // Go to home page
-            ClickAndVerifyLoginHeader(); // Click login and verify header
+            Console.WriteLine("Step: Enter invalid credentials");
+            _driver!.FindElement(_loginEmail).SendKeys(InvalidEmail);
+            _driver.FindElement(_loginPassword).SendKeys(InvalidPassword);
+            _driver.FindElement(_loginButton).Click();
 
-            // Enter invalid credentials
-            driver!.FindElement(loginEmail).SendKeys(invalidEmail);
-            driver.FindElement(loginPassword).SendKeys(invalidPassword);
-            driver.FindElement(loginButton).Click();
-
-            // Check for error message
-            if (IsElementVisible(errorMessage))
-            {
-                var errorMsg = driver.FindElement(errorMessage);
-                Console.WriteLine("[PASS] Error message is visible: " + errorMsg.Text);
-            }
-            else
-            {
-                Console.WriteLine("[FAIL] Error message not found");
-            }
+            //  Final assertion only
+            bool result = IsElementVisible(_errorMessage);
+            Console.WriteLine(result
+                ? "[PASS] Error message displayed as expected."
+                : "[FAIL] Error message NOT displayed.");
         }
 
-        // Test: Attempt login with valid credentials and verify success message
-        private static void RunValidLoginTest()
+        //  Test 2: Valid login
+        private void RunValidLoginTest()
         {
-            Console.WriteLine("\n*** Exercise 2: Valid Login ***");
+            Console.WriteLine("\n=== [Ex2] Valid Login Test ===");
+            NavigateToHomePage();
+            ClickLoginPage();
 
-            NavigateToHomePage(); // Go to home page
-            ClickAndVerifyLoginHeader(); // Click login and verify header
+            Console.WriteLine("Step: Enter valid credentials");
+            _driver!.FindElement(_loginEmail).SendKeys(ValidEmail);
+            _driver.FindElement(_loginPassword).SendKeys(ValidPassword);
+            _driver.FindElement(_loginButton).Click();
 
-            // Enter valid credentials
-            driver!.FindElement(loginEmail).SendKeys(validEmail);
-            driver.FindElement(loginPassword).SendKeys(validPassword);
-            driver.FindElement(loginButton).Click();
-
-            // Check for 'Logged in as' message
-            if (IsElementVisible(loggedInMsg))
-            {
-                var loggedInElement = driver.FindElement(loggedInMsg);
-                Console.WriteLine("[PASS] Logged in as is visible: " + loggedInElement.Text);
-            }
-            else
-            {
-                Console.WriteLine("[FAIL] 'Logged in as' not found");
-            }
+            //  Final assertion only
+            bool result = IsElementVisible(_loggedInMsg);
+            Console.WriteLine(result
+                ? "[PASS] 'Logged in as' displayed correctly."
+                : "[FAIL] Login failed — 'Logged in as' not found.");
         }
 
-        // Navigate to the home page and verify title
-        private static void NavigateToHomePage()
+        // Helper methods
+        private void NavigateToHomePage()
         {
-            driver!.Navigate().GoToUrl("http://automationexercise.com");
-            if (driver.Title.Contains("Automation Exercise"))
-                Console.WriteLine("[PASS] Home page is visible");
-            else
-                Console.WriteLine("[FAIL] Home page NOT visible");
+            _driver!.Navigate().GoToUrl("http://automationexercise.com");
+            Console.WriteLine("Step: Navigated to home page.");
         }
 
-        // Click the Signup/Login button and verify login header
-        private static void ClickAndVerifyLoginHeader()
+        private void ClickLoginPage()
         {
-            driver!.FindElement(signupLoginBtn).Click();
-            if (IsElementVisible(loginHeader))
-                Console.WriteLine("[PASS] 'Login to your account' is visible");
+            _driver!.FindElement(_signupLoginBtn).Click();
+            if (IsElementVisible(_loginHeader))
+                Console.WriteLine("Step: Open login page.");
             else
-                Console.WriteLine("[FAIL] Login header not found");
+                Console.WriteLine("Login page not found.");
         }
 
-        // Wait for an element to be visible and return its status
-        private static bool IsElementVisible(By locator)
+        private bool IsElementVisible(By locator)
         {
             try
             {
-                var element = wait!.Until(ExpectedConditions.ElementIsVisible(locator));
+                var element = _wait!.Until(ExpectedConditions.ElementIsVisible(locator));
                 return element.Displayed;
             }
             catch (WebDriverTimeoutException)
