@@ -4,11 +4,9 @@ public class UserHeader : BasePage
 {
     public UserHeader(IWebDriver driver) : base(driver) { }
 
-    public By AvatarIcon =>
-        By.CssSelector("img[alt^='Avatar of user']");
+    public By AvatarIcon => By.CssSelector("img[alt^='Avatar of user']");
 
-    public By ViewProfile =>
-        By.XPath("//span[normalize-space()='View profile']");
+    public By ViewProfile => By.XPath("//span[normalize-space()='View profile']");
 
     public void OpenUserMenu()
     {

@@ -1,16 +1,17 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
+using Unsplash.Automation.Tests.Utils;
 
 namespace Unsplash.Automation.Tests.Pages
 {
     public class BookmarksPage : BasePage
     {
-        public BookmarksPage(IWebDriver driver) : base(driver) { }
-
         private By clearButton => By.CssSelector("button.clearAllBookmarksButton-i3dfHy");
         private By confirmClearButton => By.XPath("//button[normalize-space()='Clear bookmarks']");
         private By bookmarkedPhotos => By.CssSelector("figure[itemprop='image']");
         private By bookmarksLinks => By.CssSelector("a[href='/bookmarks'][aria-label='Bookmarks']");
+
+        public BookmarksPage(IWebDriver driver) : base(driver) { }
 
         public void Open()
         {
@@ -34,7 +35,7 @@ namespace Unsplash.Automation.Tests.Pages
             {
                 throw new Exception("Cannot find a clickable Bookmarks icon.");
             }
-            Thread.Sleep(5000);
+            TestConfig.Pause();
 
         }                     
         public int CountBookmarkedPhotos()
@@ -58,8 +59,7 @@ namespace Unsplash.Automation.Tests.Pages
                 SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(confirmClearButton)
             );
 
-            ((IJavaScriptExecutor)driver)
-                .ExecuteScript("arguments[0].click();", confirmBtn);
+            JsClick(confirmBtn);
 
             wait.Until(d => CountBookmarkedPhotos() == 0);
         }

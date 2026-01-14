@@ -1,37 +1,77 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
+using Unsplash.Automation.Tests.Utils;
+
 
 namespace Unsplash.Automation.Tests.Pages;
 
 public class PhotoDetailPage : BasePage
 {
-    public PhotoDetailPage(IWebDriver driver) : base(driver) { }
-
     private By photographerContainer => By.CssSelector(".photographer-Pgpa9y");
     private By viewProfileLink => By.XPath("//a[normalize-space()='View profile']");
 
+    public PhotoDetailPage(IWebDriver driver) : base(driver) { }
+
     public void ViewPhotographerProfile()
     {
+        // Hover the photographer area to reveal the 'View profile' link. We retry hover inside the wait
+        // to mitigate flaky reveal behaviour on dynamically rendered pages.
         Hover(photographerContainer);
 
         var profileLink = wait.Until(d =>
         {
-            var el = d.FindElements(viewProfileLink).FirstOrDefault();
-            return (el != null && el.Displayed) ? el : null;
+            try
+            {
+                var el = d.FindElements(viewProfileLink).FirstOrDefault();
+                if (el != null && el.Displayed)
+                    return el;
+
+                // If link not visible yet, try hovering again to reveal it
+                try { Hover(photographerContainer); } catch { }
+                return null;
+            }
+            catch (StaleElementReferenceException)
+            {
+                return null;
+            }
         });
 
-        ((IJavaScriptExecutor)driver)
-            .ExecuteScript("arguments[0].scrollIntoView({block:'center'});", profileLink);
-
-        Thread.Sleep(2000);
+        // Scroll and click; higher-level wait helpers in BasePage handle stability and JS fallback.
+        ScrollIntoView(profileLink);
+        TestConfig.Pause();
         profileLink.Click();
 
-        // ✅ Verify đã vào profile
+        // Verify navigated to profile page
         wait.Until(d => d.Url.Contains("/@"));
-        Thread.Sleep(2000);
+        TestConfig.Pause();
     }
     public void Download()
-        {
-            Click(By.CssSelector("a[download]"));
+    {
+        // Try multiple selectors
+        // 1. Title "Download photo" (Main button usually)
+        // 2. Link with text "Download free"
+        // 3. Any link with download attribute as fallback
+        
+        try {
+             var downloadBtn = wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//a[@title='Download photo']")));
+             downloadBtn.Click();
+             Unsplash.Automation.Tests.Utils.Logger.Debug("Clicked Download by Title");
         }
+        catch (WebDriverTimeoutException)
+        {
+             try {
+                var btn = wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//span[text()='Download free']/ancestor::a")));
+                btn.Click();
+                Unsplash.Automation.Tests.Utils.Logger.Debug("Clicked Download by Text");
+             }
+             catch (WebDriverTimeoutException)
+             {
+                 // Fallback to "small" download button sometimes present?
+                 // Or just log current page source snippet?
+                 Unsplash.Automation.Tests.Utils.Logger.Debug("Failed to find download button. trying generic a[download]");
+                 var btn = wait.Until(ExpectedConditions.ElementToBeClickable(By.CssSelector("a[download]")));
+                 btn.Click();
+             }
+        }
+    }
 }

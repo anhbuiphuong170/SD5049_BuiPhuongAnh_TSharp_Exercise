@@ -10,4 +10,15 @@ public static class TestConfig
 
     // username of the test account
     public static string Username => "anhbp1211";
+    // Default wait timeout (seconds) used across pages/tests
+    public static double DefaultTimeoutSeconds => 15;
+    // Default pause (milliseconds) used for Thread.Sleep replacements
+    public static int DefaultPauseMilliseconds => 5000;
+
+    // Centralized pause helper so test authors can control sleep durations from one place.
+    // Prefer explicit waits over Pause() when possible; this exists for unavoidable timing issues.
+    public static void Pause(int? milliseconds = null)
+    {
+        System.Threading.Thread.Sleep(milliseconds ?? DefaultPauseMilliseconds);
+    }
 }

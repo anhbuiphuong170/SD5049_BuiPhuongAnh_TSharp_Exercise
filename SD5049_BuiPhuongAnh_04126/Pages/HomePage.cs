@@ -1,10 +1,16 @@
+using Unsplash.Automation.Tests.Utils;
+
 namespace Unsplash.Automation.Tests.Pages;
 
 public class HomePage : BasePage
 {
+    // HomePage: page object representing Unsplash home view.
+    // Responsibilities:
+    // - Navigate to the home page, locate photo cards, and provide higher-level actions
+    //   such as opening the first photo or bookmarking photos.
+    // - Methods return primitive types or simple identifiers (e.g., collection id) so tests can
+    //   assert outcomes without parsing the DOM directly.
     public HomePage(IWebDriver driver) : base(driver) { }
-    // private By photos => By.CssSelector("figure[itemprop='image']");
-    // private By bookmarkButtonInPhoto =>By.CssSelector("button[aria-label='Bookmark']");
     private By photoCards = By.CssSelector("figure[itemprop='image']");
     private By bookmarkButtons = By.CssSelector("button[aria-label='Bookmark']");
     private By addToCollectionBtn = By.XPath(".//button[@aria-label='Add to Collection']");
@@ -14,17 +20,20 @@ public class HomePage : BasePage
     private By createSubmitBtn = By.XPath("//button[.//span[text()='Create collection']]");
     private By collectionOptions = By.XPath("//div[@role='option']");
     private By collectionsList = By.XPath("//div[@role='listbox' or @aria-label='Collections']");
+    private By collectionSearchInput = By.CssSelector("input[placeholder*='Search']");
+    
     public void Open()
     {
         driver.Navigate().GoToUrl("https://unsplash.com");
         wait.Until(d => d.Url.Contains("unsplash.com"));
         wait.Until(d => d.FindElements(photoCards).Count > 0);
     }
-
+    /// <summary>
+    /// Open the first photo in the grid by navigating directly to its href.
+    /// Uses JavaScript to extract the link to avoid brittle DOM traversal.
+    /// </summary>
     public void OpenFirstPhoto()
     {
-        var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
-
         string? href = wait.Until(d =>
         {
             try
@@ -73,28 +82,47 @@ public class HomePage : BasePage
                 try
                 {
                     // Scroll photo to center of screen
-                    ((IJavaScriptExecutor)driver)
-                        .ExecuteScript(
-                            "arguments[0].scrollIntoView({block:'center'});",
-                            photo
-                        );
+                    ScrollIntoView(photo);
 
-                    Thread.Sleep(300);
+                    // Wait for bookmark button to appear inside the photo (re-hover if needed)
+                    try
+                    {
+                        var shortWait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
+                        shortWait.Until(d =>
+                        {
+                            try
+                            {
+                                var btn = photo.FindElements(bookmarkButtons).FirstOrDefault();
+                                if (btn == null || !btn.Displayed || !btn.Enabled)
+                                {
+                                    Hover(photo);
+                                    return false;
+                                }
+                                return true;
+                            }
+                            catch { return false; }
+                        });
+                    }
+                    catch (WebDriverTimeoutException)
+                    {
+                        // If still not found, skip this photo
+                        continue;
+                    }
 
                     // Find bookmark button INSIDE photo
                     var bookmarkBtn = photo.FindElements(
-                        By.CssSelector("button[aria-label='Bookmark']")
+                        bookmarkButtons
                     ).FirstOrDefault();
 
                     if (bookmarkBtn == null)
                         continue;
 
                     // JS click (DO NOT use Actions)
-                    ((IJavaScriptExecutor)driver)
-                        .ExecuteScript("arguments[0].click();", bookmarkBtn);
+                        JsClick(bookmarkBtn);
 
                     bookmarked++;
-                    Thread.Sleep(600);
+                    // small stabilization wait for UI update
+                    WaitPageStable();
                 }
                 catch (StaleElementReferenceException)
                 {
@@ -102,80 +130,124 @@ public class HomePage : BasePage
                 }
             }
 
-            // Scroll to load more photos
-            ((IJavaScriptExecutor)driver)
-                .ExecuteScript("window.scrollBy(0, window.innerHeight);");
-
-            Thread.Sleep(800);
+            // Scroll to load more photos and wait for new content
+            ((IJavaScriptExecutor)driver).ExecuteScript("window.scrollBy(0, window.innerHeight);");
+            wait.Until(d => d.FindElements(photoCards).Count > 0);
         }
 
         if (bookmarked < count)
             throw new Exception($"Only bookmarked {bookmarked}/{count} photos");
     }
-
-public string CreateCollectionAndAddPhotos(string collectionName, int count)
+public (string collectionId, CollectionDetailPage page) CreateCollectionAndAddPhotos(string collectionName, int count)
 {
-    var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
-    string collectionId = null;
+    string? collectionId = null;
 
     for (int i = 0; i < count; i++)
     {
-        // 🔹 Scroll photo vào giữa màn hình
-        ((IJavaScriptExecutor)driver).ExecuteScript(@"
-            const photos = document.querySelectorAll(""figure[itemprop='image']"");
-            photos[arguments[0]].scrollIntoView({ block: 'center' });
-        ", i);
+        var targetPhoto = GetPhotoAtIndex(i);
+        if (targetPhoto == null)
+        {
+            ((IJavaScriptExecutor)driver).ExecuteScript("window.scrollBy(0, window.innerHeight);");
+            TestConfig.Pause();
+            targetPhoto = GetPhotoAtIndex(i);
+            if (targetPhoto == null) throw new Exception($"Not enough photos to add: requested index {i}");
+        }
 
-        Thread.Sleep(600);
+            ScrollIntoView(targetPhoto);
+        TestConfig.Pause();
 
-        // 🔹 Click Add to Collection
-        ((IJavaScriptExecutor)driver).ExecuteScript(@"
-            const photos = document.querySelectorAll(""figure[itemprop='image']"");
-            photos[arguments[0]]
-                .querySelector(""button[aria-label='Add to Collection']"")
-                .click();
-        ", i);
+        IWebElement addBtn;
+        try
+        {
+            addBtn = targetPhoto.FindElement(addToCollectionBtn);
+        }
+        catch (StaleElementReferenceException)
+        {
+            targetPhoto = GetPhotoAtIndex(i) ?? throw new Exception($"Photo at index {i} became unavailable");
+            addBtn = targetPhoto.FindElement(addToCollectionBtn);
+        }
 
-        // 🔹 Wait popup open
-        var dialog = wait.Until(d =>
-            d.FindElements(By.XPath("//div[@role='dialog']")).FirstOrDefault()
-        );
+        JsClick(addBtn);
+
+        var dialog = wait.Until(d => d.FindElements(dialogLocator).FirstOrDefault());
 
         if (i == 0)
         {
-            // 🔹 Create new collection
             wait.Until(ExpectedConditions.ElementToBeClickable(createCollectionBtn)).Click();
-            wait.Until(ExpectedConditions.ElementIsVisible(nameInput)).SendKeys(collectionName);
+            var input = wait.Until(ExpectedConditions.ElementIsVisible(nameInput));
+            input.Click();
+            input.SendKeys(collectionName);
             driver.FindElement(privateCheckbox).Click();
-            driver.FindElement(createSubmitBtn).Click();
-
-            // 🔹 Get collectionId
-            collectionId = wait.Until(d =>
-                d.Url.Contains("/collections/")
-                    ? d.Url.Split("/collections/")[1].Split("/")[0]
-                    : null
-            );
+            var btn = driver.FindElement(createSubmitBtn);
+            btn.Click();
+            TestConfig.Pause();
         }
         else
         {
-            // 🔹 Tick existing collection
-            wait.Until(d =>
-                d.FindElements(collectionOptions)
-                 .Any(c => c.Text.Trim() == collectionName)
-            );
+            bool found = false;
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    try { wait.Until(d => d.FindElements(collectionOptions).Count > 0); } catch {}
+                    var search = driver.FindElements(collectionSearchInput).FirstOrDefault();
+                    if (search != null && search.Displayed)
+                    {
+                        search.Clear();
+                        search.SendKeys(collectionName);
+                        TestConfig.Pause();
+                    }
 
-            driver.FindElements(collectionOptions)
-                  .First(c => c.Text.Trim() == collectionName)
-                  .Click();
+                    wait.Until(d => d.FindElements(collectionOptions).Any(c => c.Text.Contains(collectionName)));
+                    driver.FindElements(collectionOptions).First(c => c.Text.Contains(collectionName)).Click();
+                    found = true;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"Attempt {attempt+1} failed: {ex.Message}");
+                    CloseAddToCollectionModal();
+                    TestConfig.Pause();
+
+                    try
+                    {
+                        var p = GetPhotoAtIndex(i);
+                        if (p != null)
+                        {
+                            var ab = p.FindElement(addToCollectionBtn);
+                            JsClick(ab);
+                            TestConfig.Pause();
+                        }
+                    }
+                    catch (StaleElementReferenceException) { }
+                }
+            }
+
+            if (!found) throw new Exception($"Failed to find collection {collectionName} after 3 attempts");
         }
 
-        // ✅ BẮT BUỘC: ESC sau MỖI lần add
         CloseAddToCollectionModal();
-
-        Thread.Sleep(800); // đảm bảo popup đóng hẳn trước vòng sau
+        TestConfig.Pause();
     }
 
-    return collectionId;
+    // After adding photos, navigate to Collections and open the created collection to retrieve its id
+    var collectionsPage = new CollectionsPage(driver);
+    collectionsPage.OpenCollections();
+    var collectionPage = collectionsPage.OpenCollection(collectionName);
+    collectionId = collectionPage.GetCurrentCollectionId();
+
+    return (collectionId ?? string.Empty, collectionPage);
 }
+
+    // Private helpers
+    // Keep helper methods after public actions for consistent ordering
+    private IWebElement GetPhotoAtIndex(int index)
+    {
+        return wait.Until(d =>
+        {
+            var list = d.FindElements(photoCards);
+            return (list.Count > index) ? list[index] : null;
+        });
+    }
 
 }
