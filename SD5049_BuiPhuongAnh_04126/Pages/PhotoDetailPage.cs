@@ -55,20 +55,20 @@ public class PhotoDetailPage : BasePage
         try {
              var downloadBtn = wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//a[@title='Download photo']")));
              downloadBtn.Click();
-             Unsplash.Automation.Tests.Utils.Logger.Debug("Clicked Download by Title");
+             Logger.Debug("Clicked Download by Title");
         }
         catch (WebDriverTimeoutException)
         {
              try {
                 var btn = wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//span[text()='Download free']/ancestor::a")));
                 btn.Click();
-                Unsplash.Automation.Tests.Utils.Logger.Debug("Clicked Download by Text");
+                Logger.Debug("Clicked Download by Text");
              }
              catch (WebDriverTimeoutException)
              {
                  // Fallback to "small" download button sometimes present?
                  // Or just log current page source snippet?
-                 Unsplash.Automation.Tests.Utils.Logger.Debug("Failed to find download button. trying generic a[download]");
+                 Logger.Debug("Failed to find download button. trying generic a[download]");
                  var btn = wait.Until(ExpectedConditions.ElementToBeClickable(By.CssSelector("a[download]")));
                  btn.Click();
              }
